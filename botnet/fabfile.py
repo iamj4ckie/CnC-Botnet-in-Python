@@ -49,10 +49,13 @@ def add_host():
     """Add a new host to the running hosts. The user can decide whether to add
     the host also to the external `hosts.txt` file.
     """
+    global selected_hosts
     name = input('Username: ')
     host = input('Host: ')
     port = int(input('Port: '))
     new_host = f'{name}@{host}:{port}'
+    if isinstance(selected_hosts, filter):     # FIX
+        selected_hosts = list(selected_hosts)  # FIX
     selected_hosts.append(new_host)
     password = None
     if confirm('Authenticate using a password? '):
@@ -107,23 +110,23 @@ def select_running_hosts():
 def choose_hosts():
     """Select the hosts to be used."""
     global selected_hosts
-    mylist = map(lambda num, h: [num, h], enumerate(env.hosts))
+    mylist = [[num, h] for num, h in enumerate(env.hosts)] # FIX
     print(fab_col.blue('Select Hosts (space-separated):'))
     print(fab_col.blue(tabulate(mylist, ['Number', 'Host'])))
     choices = input('> ').split()
     # Avoid letters in string index
-    choices = filter(lambda x: x.isdigit(), choices)
+    choices = list(filter(lambda x: x.isdigit(), choices)) # FIX
     # Convert to int list
-    choices = map(int, choices)
+    choices = list(map(int, choices)) # FIX
     # Avoid IndexError
-    choices = filter(lambda x: x < len(env.hosts), choices)
+    choices = list(filter(lambda x: x < len(env.hosts), choices)) # FIX
     # Remove duplicates
     choices = list(set(choices))
     # If no hosts are selected, keep the current hosts
     if len(choices) == 0:
         return
     # Get only selected hosts
-    selected_hosts = map(lambda i: env.hosts[i], choices)
+    selected_hosts = [env.hosts[i] for i in choices]
 
 
 def run_locally(cmd=None):
@@ -205,7 +208,7 @@ def execute_script():
 
 def open_sh():
     """Open a shell on a host."""
-    mylist = map(lambda num, h: [num, h], enumerate(selected_hosts))
+    mylist = [[num, h] for num, h in enumerate(selected_hosts)] # FIX
     print(fab_col.blue(tabulate(mylist, ['Number', 'Host'])))
     try:
         n = int(input('Open shell in host number: '))
