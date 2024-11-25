@@ -50,9 +50,18 @@ def add_host():
     the host also to the external `hosts.txt` file.
     """
     global selected_hosts
-    name = input('Username: ')
+    name = input('Username (default: root): ') or 'root'
     host = input('Host: ')
-    port = int(input('Port: '))
+    port = input('Port (default: 22): ') or '22'
+    if not host:
+        print("Error: Hostname cannot be empty.")
+        return
+    try:
+        port = int(port)
+    except ValueError:
+        print("Error: Port must be a valid number.")
+        return
+
     new_host = f'{name}@{host}:{port}'
     if isinstance(selected_hosts, filter):     # FIX
         selected_hosts = list(selected_hosts)  # FIX
