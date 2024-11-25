@@ -28,5 +28,9 @@ def menu():
                     'Exit']
     for num, func in enumerate(descriptions):
         print(f'[{num}] {func}')
-    choice = input('>>> ')
-    return choice
+    while True:  
+        choice = input('>>> ')
+        if choice.isdigit() and 0 <= int(choice) < len(descriptions):
+            return choice
+        else:
+            print("Invalid choice.")
