@@ -18,4 +18,5 @@ if __name__ == '__main__':
           '10': end}
     while True:
         choice = menu()
-        df.get(choice, choice_error)()
+        str_choice = str(choice)
+        df.get(str_choice, choice_error)()
