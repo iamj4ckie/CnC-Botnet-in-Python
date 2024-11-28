@@ -34,26 +34,30 @@ Install the dependencies
 pip install -r requirements.txt
 ```
 
-Create the _hosts.txt_ file (optional, see above), and run the start script
+Install the Package 
 ```bash
-python start.py
+pip install .
 ```
 
-## Example
+Create the _hosts.txt_ file (optional, see above).
+
+Run the CLI
+```bash
+botnet-cli <command>
 ```
-=================================
-MENU
-=================================
-[0] Load host from external file
-[1] Add a new host
-[2] Print selected hosts
-[3] Check active hosts
-[4] Select only active hosts
-[5] Select bots
-[6] Execute command locally
-[7] Execute command on bots
-[8] Run external script
-[9] Open shell in a host
-[10] Exit
->>> 
-```
+
+## Command List
+
+The following commands are available in the CLI:
+
+- **`load_hosts`**: Load hosts from the `_hosts.txt` file.
+- **`add_host`**: Add a new host to the system.
+- **`print_hosts`**: Print the list of currently selected hosts.
+- **`check_hosts`**: Check which hosts are active.
+- **`select_running_hosts`**: Select only hosts that are currently running.
+- **`choose_hosts`**: Manually choose specific hosts.
+- **`run_locally`**: Execute a command locally.
+- **`run_command`**: Execute a command on selected bots.
+- **`execute_script`**: Run an external script on selected bots.
+- **`open_shell`**: Open a shell on a selected host.
+- **`exit`**: Exit the CLI.

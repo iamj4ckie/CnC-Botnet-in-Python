@@ -1,0 +1,12 @@
+LICENSE
+README.md
+botnet_cli.py
+setup.py
+botnet/__init__.py
+botnet/fabfile.py
+botnet/utilities.py
+botnet_cli.egg-info/PKG-INFO
+botnet_cli.egg-info/SOURCES.txt
+botnet_cli.egg-info/dependency_links.txt
+botnet_cli.egg-info/entry_points.txt
+botnet_cli.egg-info/top_level.txt
