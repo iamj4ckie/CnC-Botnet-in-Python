@@ -30,7 +30,7 @@ command_descriptions = {
     'check_hosts': "Check which hosts are active.",
     'select_running_hosts': "Select only hosts that are currently running.",
     'choose_hosts': "Choose specific hosts.",
-    'run_locally': "Execute locally on your machine.",
+    'run_locally': "Execute a command locally on your machine.",
     'run_command': "Execute a command on selected bots.",
     'execute_script': "Run an external script on selected bots.",
     'open_shell': "Open a shell on a selected host.",

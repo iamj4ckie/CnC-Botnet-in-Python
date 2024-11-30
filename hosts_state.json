@@ -1,0 +1,11 @@
+{
+    "env_hosts": [
+        "root@127.0.0.1:2222"
+    ],
+    "selected_hosts": [
+        "root@127.0.0.1:2222"
+    ],
+    "env_passwords": {
+        "root@127.0.0.1:2222": "password123"
+    }
+}
