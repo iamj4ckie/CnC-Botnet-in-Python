@@ -10,3 +10,10 @@ paramiko.log
 # Python virtualenv
 venv
 venv3
+botnet-env
+
+# macOS thingie
+.DS_Store
+
+# Python cache
+__pycache__/
