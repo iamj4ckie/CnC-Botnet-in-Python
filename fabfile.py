@@ -77,19 +77,39 @@ def list_hosts(c):
     for host in hosts:
         print(f"- {host}")
 
-
 @task
 def add_host(c, host, password=None):
-    """Add a new host to the state."""
+    """Add a new host to the state and append it to hosts.txt."""
     state = load_state()
     if host not in state["env_hosts"]:
         state["env_hosts"].append(host)
         if password:
             state["env_passwords"][host] = password
         save_state(state)
-        print(f"Host {host} added.")
+
+        # Append to hosts.txt
+        with open(HOSTS_FILE, "a") as f:
+            if password:
+                f.write(f"{host} {password}\n")
+            else:
+                f.write(f"{host}\n")
+
+        print(f"Host {host} added and saved to hosts.txt.")
     else:
         print(f"Host {host} already exists.")
+
+#@task
+#def add_host(c, host, password=None):
+#  """Add a new host to the state."""
+#   state = load_state()
+#    if host not in state["env_hosts"]:
+#        state["env_hosts"].append(host)
+#        if password:
+#            state["env_passwords"][host] = password
+#        save_state(state)
+#       print(f"Host {host} added.")
+#   else:
+#       print(f"Host {host} already exists.")
 
 
 @task
