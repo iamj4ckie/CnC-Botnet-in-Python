@@ -1,10 +1,9 @@
 import json
-from fabric import Connection, Group, task
-from pathlib import Path
-from getpass import getpass
 import logging
-from fabric.group import ThreadingGroup
+from pathlib import Path
 
+from fabric import Connection, task
+from fabric.group import ThreadingGroup
 
 logging.basicConfig(
     filename="paramiko.log",
@@ -90,7 +89,6 @@ def add_host(c, host, password=None):
             state["env_passwords"][host] = password
         save_state(state)
 
-        # Append to hosts.txt
         with open(HOSTS_FILE, "a") as f:
             if password:
                 f.write(f"{host} {password}\n")
@@ -114,101 +112,55 @@ def select_hosts(c):
     for idx, host in enumerate(all_hosts):
         print(f"{idx}:{host}")
     selections = input(
-        "Enter the indices of hosts to select (comma-separated):"
+        "Enter the indices of hosts to select (comma-separated) - \
+            Enter to select all:"
     ).strip()
-    selected_indices = [int(i) for i in selections.split(",") if i.isdigit()]
-    selected_hosts = [all_hosts[i] for i in selected_indices if i < len(all_hosts)]
+    selected_hosts = all_hosts
+    # If none were selected, choose all the hosts
+    if selections:
+        selected_indices = [
+            int(i) for i in selections.split(",") if i.isdigit()
+        ]
+        selected_hosts = [
+            all_hosts[i] for i in selected_indices if i < len(all_hosts)
+        ]
     state["selected_hosts"] = selected_hosts
     save_state(state)
     print(f"Selected {len(selected_hosts)} hosts.")
 
 
+def build_connections():
+    """Build Connection objects from selected hosts."""
+    state = load_state()
+    selected_hosts = state.get("selected_hosts", [])
+    passwords = state.get("env_passwords", {})
+
+    connections = []
+    for host in selected_hosts:
+        password = passwords.get(host)
+        connection = Connection(
+            host=host,
+            connect_kwargs=({"password": password} if password else {}),
+        )
+        connections.append(connection)
+    return connections
+
+
 @task
 def run_command(c, command):
     """
-    Execute a custom command on multiple hosts in parallel using ThreadingGroup.
+    Execute a custom command on multiple hosts in parallel using
+    ThreadingGroup.
     """
-    with open(STATE_FILE, "r") as f:
-        data = json.load(f)
-
-    hosts = data["selected_hosts"]
-    passwords = data["env_passwords"]
-
-    group = ThreadingGroup(*hosts)
-
-    results = {}
-    for connection in group:
-        try:
-            full_host = f"{connection.user}@{connection.host}:{connection.port}"
-            password = passwords.get(full_host)
-
-            if not password:
-                raise KeyError(f"No password found for host: {full_host}")
-
-            connection.connect_kwargs = {"password": password}
-
-            print(f"Connecting to {full_host}...")
-            result = connection.run(command, hide=False)
-            results[full_host] = result.stdout.strip()
-            print(f"Success on {full_host}: {result.stdout.strip()}")
-        except KeyError as e:
-            print(f"Password missing for {connection.host}: {e}")
-        except Exception as e:
-            print(f"Error on {connection.host}: {e}")
-
-    return results
-
-
-@task
-def execute_script(c, script_file):
-    """
-    Execute a script file on all selected hosts with a customizable command using ThreadingGroup.
-    """
-    with open(STATE_FILE, "r") as f:
-        data = json.load(f)
-
-    hosts = data["selected_hosts"]
-    passwords = data["env_passwords"]
-
-    if not hosts:
-        print("No hosts selected. Use `select_hosts` to choose hosts.")
+    connections = build_connections()
+    if not connections:
+        print("No hosts selected.")
         return
 
-    script_name = Path(script_file).name
-    remote_path = f"{script_name}"
-
-    group = ThreadingGroup(*hosts)
-    results = {}
-
-    for connection in group:
-        try:
-            full_host = f"{connection.user}@{connection.host}:{connection.port}"
-            password = passwords.get(full_host)
-
-            if not password:
-                raise KeyError(f"No password found for host: {full_host}")
-
-            connection.connect_kwargs = {"password": password}
-
-            print(f"Connecting to {full_host}...")
-            # Upload the script
-            connection.put(script_file, remote=remote_path)
-            print(f"Uploaded {script_file} to {remote_path}")
-
-            # Execute the script with the custom command
-            # result = connection.run(f"python3 {remote_path}", hide=False)
-            # results[full_host] = result.stdout.strip()
-            # print(f"Success on {full_host}: {result.stdout.strip()}")
-
-        except Exception as e:
-            print(f"Error on {full_host}: {e}")
-
-        # finally:
-            # Clean up the script on the remote host
-            # try:
-                # connection.run(f"rm -f {remote_path}", hide=True)
-                # print(f"Cleaned up {remote_path} on {full_host}")
-            # except Exception as cleanup_error:
-                # print(f"Cleanup failed on {full_host}: {cleanup_error}")
-
-    return results
+    group = ThreadingGroup.from_connections(connections)
+    try:
+        results = group.run(command, hide=False, pty=False)
+        for connection, result in results.items():
+            print(f"{connection.host}: {result.stdout.strip()}")
+    except Exception as e:
+        print(f"Error during command execution: {e}")
