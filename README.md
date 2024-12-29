@@ -51,3 +51,15 @@ fab run-command "wget example.com"
 ```sh
 fab execute-script dummy.py
 ```
+
+## Docker
+
+```sh
+# Building the container
+docker build -t fab-botnet .   
+# Running the container
+# Connecting the container to the network
+docker run -d --name fab-botnet --network chn-network fab-botnet
+# Confirm network
+docker network inspect chn-network
+```

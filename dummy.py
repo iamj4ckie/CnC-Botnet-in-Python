@@ -14,5 +14,5 @@ def download(url):
 
 
 if __name__ == "__main__":
-    url = "https://deneginepote.org/"
+    url = "https://example.com/"
     download(url)
