@@ -1,2 +1,0 @@
-botnet
-botnet_cli

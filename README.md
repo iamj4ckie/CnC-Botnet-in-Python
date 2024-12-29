@@ -6,58 +6,48 @@ Simple botnet written in Python using fabric.
 <p>
 The author is not responsible for the use of this code.
 
-## Hosts
-It is possible to load hosts from a file _hosts.txt_ included in the main directory of the project.
-The default format for this file is:
-```bash
-username@host:port password
-```
+## Set up
 
-If the port number is not declared, port 22 is used:
-```bash
-username@host password
-```
-SSH connection is the default authentication way, so if the host knows the public key of the user, it is not necessary to indicate the password:
-```bash
-username@host
-```
-
-## Usage
-To start the application, simply download the repository
-```bash
-git clone https://github.com/marcorosa/CnC-Botnet-in-Python
-cd CnC-Botnet-in-Python
-```
-
-Install the dependencies
-```bash
+- Create a python env and install requirements
+```sh
+python3 -m venv botnet-env
+source botnet-env/bin/activate
 pip install -r requirements.txt
 ```
+- To run the script, create a `hosts.txt` by copying the `hosts.txt.sample`
+```sh
+cp hosts.txt.sample hosts.txt
+# Then modify...
+```
+- Write out the hosts you want to run the C&C botnet.
 
-Install the Package 
-```bash
-pip install .
+## Running the botnet
+
+- Listing all the commands
+```sh
+fab -l
+# Which shows this:
+Available tasks:
+
+  add-host         Add a new host to the state.
+  execute-script   Execute a script file on all selected hosts.
+  list-hosts       List all loaded hosts.
+  load-hosts       Load hosts and passwords into state from hosts.txt.
+  run-command      Run a command on all selected hosts.
+  select-hosts     Select specific hosts to execute commands.
 ```
 
-Create the _hosts.txt_ file (optional, see above).
+- Use `select-hosts` if you want to select specific hosts to run commands or scripts.
 
-Run the CLI
-```bash
-botnet-cli <command>
+- The current selected hosts are saved to `hosts_state.json`.
+
+- Use `run-command` to execute a command on the hosts in `hosts_state.json`
+```sh
+# Example
+fab run-command "wget example.com"
 ```
-
-## Command List
-
-The following commands are available in the CLI:
-
-- **`load_hosts`**: Load hosts from the `_hosts.txt` file.
-- **`add_host`**: Add a new host to the system.
-- **`print_hosts`**: Print the list of currently selected hosts.
-- **`check_hosts`**: Check which hosts are active.
-- **`select_running_hosts`**: Select only hosts that are currently running.
-- **`choose_hosts`**: Manually choose specific hosts.
-- **`run_locally`**: Execute a command locally.
-- **`run_command`**: Execute a command on selected bots.
-- **`execute_script`**: Run an external script on selected bots.
-- **`open_shell`**: Open a shell on a selected host.
-- **`exit`**: Exit the CLI.
+- Use `execute-script` to execute a script:
+**Warning**:  This does not work and it is commented out at the moment!
+```sh
+fab execute-script dummy.sh
+```

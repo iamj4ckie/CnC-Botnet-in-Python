@@ -1,2 +1,0 @@
-[console_scripts]
-botnet-cli = botnet_cli:main
