@@ -49,5 +49,5 @@ fab run-command "wget example.com"
 - Use `execute-script` to execute a script:
 **Warning**:  This does not work and it is commented out at the moment!
 ```sh
-fab execute-script dummy.sh
+fab execute-script dummy.py
 ```
