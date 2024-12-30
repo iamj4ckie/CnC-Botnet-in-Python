@@ -80,6 +80,7 @@ def list_hosts(c):
     for host in hosts:
         print(f"- {host}")
 
+
 @task
 def add_host(c, host, password=None):
     """Add a new host to the state and append it to hosts.txt."""
@@ -101,19 +102,6 @@ def add_host(c, host, password=None):
     else:
         print(f"Host {host} already exists.")
 
-#@task
-#def add_host(c, host, password=None):
-#  """Add a new host to the state."""
-#   state = load_state()
-#    if host not in state["env_hosts"]:
-#        state["env_hosts"].append(host)
-#        if password:
-#            state["env_passwords"][host] = password
-#        save_state(state)
-#       print(f"Host {host} added.")
-#   else:
-#       print(f"Host {host} already exists.")
-
 
 @task
 def select_hosts(c):
@@ -134,6 +122,7 @@ def select_hosts(c):
     state["selected_hosts"] = selected_hosts
     save_state(state)
     print(f"Selected {len(selected_hosts)} hosts.")
+
 
 @task
 def run_command(c, command, repetitions=1, interval=1):
@@ -178,75 +167,3 @@ def run_command(c, command, repetitions=1, interval=1):
     print("\nCommand Execution Results:")
     for host, output in results.items():
         print(f"{host}: {output}")
-
-
-
-#""" @task
-#def run_command(c, command):
-#    """Run a command on all selected hosts."""
-#    state = load_state()
-#    hosts = state.get("selected_hosts", [])
-#    passwords = state.get("env_passwords", {})
-#    if not hosts:
-#        print("No hosts selected. Use `select_hosts` to choose hosts.")
-#        return
-#  
-#    results = {}
-#   
-#    for host in hosts:
-#       password = passwords.get(host)
-#       if not password:
-#            password = getpass(f"Password for {host}: ")
-#
-#       print(f"Connecting to {host}...")
-#       try:
-#           connection = Connection(host=host, connect_kwargs={"password": password})
-#           result = connection.run(command, hide=True)
-#           print(f"Success on {host}: {result.stdout.strip()}")
-#           results[host] = result.stdout.strip()
-#       except Exception as e:
-#           print(f"Error on {host}: {e}")
-#           results[host] = str(e)
-#
-#    print("\nCommand Execution Results:")
-#    for host, output in results.items():
-#        print(f"{host}: {output}") """
-
-
-# This doesn't work
-# @task
-# This is only with python so far
-# def execute_script(c, script_file):
-#     """Execute a script file on all selected hosts."""
-#     state = load_state()
-#     hosts = state.get("selected_hosts", [])
-#     passwords = state.get("env_passwords", {})
-#     if not hosts:
-#         print("No hosts selected. Use `select_hosts` to choose hosts.")
-#         return
-
-#     script_name = Path(script_file).name
-#     remote_path = f"/tmp/{script_name}"
-
-#     for host in hosts:
-#         password = passwords.get(host)
-#         if not password:
-#             password = getpass(f"Password for {host}: ")
-
-#         print(f"Uploading and executing script {script_file} on {host}...")
-#         try:
-#             connection = Connection(host=host, connect_kwargs={"password": password})
-
-#             connection.put(script_file, remote=remote_path)
-
-#             result = connection.run(f"python3 {remote_path}", hide=False)
-#             print(f"Success on {host}: {result.stdout.strip()}")
-
-#         except Exception as e:
-#             print(f"Error on {host}: {e}")
-#         finally:
-#             try:
-#                 connection.run(f"rm -f {remote_path}/{script_name}", hide=True)
-#             except Exception as cleanup_error:
-#                 print(f"Cleanup failed on {host}: {cleanup_error}")
-
