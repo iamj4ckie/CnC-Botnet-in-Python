@@ -4,6 +4,8 @@ from pathlib import Path
 from getpass import getpass
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
+
 
 logging.basicConfig(
     filename="paramiko.log",
@@ -136,7 +138,7 @@ def select_hosts(c):
 @task
 def run_command(c, command, repetitions=1, interval=1):
     """
-    Run a command on all selected hosts.
+    Run a command on all selected hosts simultaneously.
 
     Args:
         c: Fabric context.
@@ -152,7 +154,8 @@ def run_command(c, command, repetitions=1, interval=1):
         return
 
     results = {}
-    for host in hosts:
+
+    def execute_command(host):
         password = passwords.get(host)
         if not password:
             password = getpass(f"Password for {host}: ")
@@ -169,9 +172,14 @@ def run_command(c, command, repetitions=1, interval=1):
             print(f"Error on {host}: {e}")
             results[host] = str(e)
 
+    with ThreadPoolExecutor() as executor:
+        executor.map(execute_command, hosts)
+
     print("\nCommand Execution Results:")
     for host, output in results.items():
         print(f"{host}: {output}")
+
+
 
 #""" @task
 #def run_command(c, command):
