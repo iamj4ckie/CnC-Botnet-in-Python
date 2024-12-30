@@ -3,6 +3,7 @@ from fabric import Connection, Group, task
 from pathlib import Path
 from getpass import getpass
 import logging
+import time
 
 logging.basicConfig(
     filename="paramiko.log",
@@ -132,10 +133,17 @@ def select_hosts(c):
     save_state(state)
     print(f"Selected {len(selected_hosts)} hosts.")
 
-
 @task
-def run_command(c, command):
-    """Run a command on all selected hosts."""
+def run_command(c, command, repetitions=1, interval=1):
+    """
+    Run a command on all selected hosts.
+
+    Args:
+        c: Fabric context.
+        command: Command to execute.
+        repetitions (optional): Number of times to run the command. Default is 1.
+        interval (optional): Interval between repetitions in seconds. Default is 1 second.
+    """
     state = load_state()
     hosts = state.get("selected_hosts", [])
     passwords = state.get("env_passwords", {})
@@ -152,9 +160,11 @@ def run_command(c, command):
         print(f"Connecting to {host}...")
         try:
             connection = Connection(host=host, connect_kwargs={"password": password})
-            result = connection.run(command, hide=True)
-            print(f"Success on {host}: {result.stdout.strip()}")
-            results[host] = result.stdout.strip()
+            for _ in range(repetitions):
+                result = connection.run(command, hide=True)
+                print(f"Success on {host}: {result.stdout.strip()}")
+                time.sleep(interval)
+            results[host] = f"{repetitions} repetitions completed"
         except Exception as e:
             print(f"Error on {host}: {e}")
             results[host] = str(e)
@@ -162,6 +172,37 @@ def run_command(c, command):
     print("\nCommand Execution Results:")
     for host, output in results.items():
         print(f"{host}: {output}")
+
+#""" @task
+#def run_command(c, command):
+#    """Run a command on all selected hosts."""
+#    state = load_state()
+#    hosts = state.get("selected_hosts", [])
+#    passwords = state.get("env_passwords", {})
+#    if not hosts:
+#        print("No hosts selected. Use `select_hosts` to choose hosts.")
+#        return
+#  
+#    results = {}
+#   
+#    for host in hosts:
+#       password = passwords.get(host)
+#       if not password:
+#            password = getpass(f"Password for {host}: ")
+#
+#       print(f"Connecting to {host}...")
+#       try:
+#           connection = Connection(host=host, connect_kwargs={"password": password})
+#           result = connection.run(command, hide=True)
+#           print(f"Success on {host}: {result.stdout.strip()}")
+#           results[host] = result.stdout.strip()
+#       except Exception as e:
+#           print(f"Error on {host}: {e}")
+#           results[host] = str(e)
+#
+#    print("\nCommand Execution Results:")
+#    for host, output in results.items():
+#        print(f"{host}: {output}") """
 
 
 # This doesn't work
@@ -200,3 +241,4 @@ def run_command(c, command):
 #                 connection.run(f"rm -f {remote_path}/{script_name}", hide=True)
 #             except Exception as cleanup_error:
 #                 print(f"Cleanup failed on {host}: {cleanup_error}")
+
