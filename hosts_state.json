@@ -1,5 +1,21 @@
 {
-  "env_hosts": [],
-  "selected_hosts": [],
-  "env_passwords": {}
+    "env_hosts": [
+        "cowrie@0.0.0.0:2223",
+        "cowrie@0.0.0.0:2224",
+        "cowrie@0.0.0.0:2225",
+        "cowrie@0.0.0.0:2226"
+    ],
+    "selected_hosts": [
+        "root@0.0.0.0:2225"
+    ],
+    "env_passwords": {
+        "cowrie@172.18.0.14:2222": "cowrie",
+        "cowrie@172.18.0.22:2222": "cowrie",
+        "cowrie@172.18.0.21:2222": "cowrie",
+        "cowrie@172.18.0.4:2222": "cowrie",
+        "cowrie@0.0.0.0:2223": "cowrie",
+        "cowrie@0.0.0.0:2224": "cowrie",
+        "cowrie@0.0.0.0:2225": "cowrie",
+        "root@0.0.0.0:2225": "cowrie"
+    }
 }

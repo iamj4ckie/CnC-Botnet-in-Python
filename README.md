@@ -7,7 +7,6 @@ Simple botnet written in Python using fabric.
 The author is not responsible for the use of this code.
 
 ## Set up
-
 - Create a python env and install requirements
 ```sh
 python3 -m venv botnet-env
@@ -36,18 +35,35 @@ Available tasks:
   run-command      Run a command on all selected hosts.
   select-hosts     Select specific hosts to execute commands.
 ```
+- Use `load-hosts` to load hosts from `hosts.txt` to `hosts_state.json`
 
-- Use `select-hosts` if you want to select specific hosts to run commands or scripts.
+- Use `select-hosts` to select specific hosts to run commands or scripts.
+
+- Use `add-hosts` to add a new host directly.
+```sh
+fab add-host --host "username@host" --password "password"
+```
 
 - The current selected hosts are saved to `hosts_state.json`.
 
 - Use `run-command` to execute a command on the hosts in `hosts_state.json`
 ```sh
 # Example
-fab run-command "wget example.com"
+fab run-command --command "curl http://static-victim:8081" --repetitions 2 --interval 1
 ```
-- Use `execute-script` to execute a script:
-**Warning**:  This does not work and it is commented out at the moment!
+Parameters:
+- **command**: The command to execute.
+- **repetitions**: Number of times to repeat the command (default: 1).
+- **interval**: Delay (in seconds) between repetitions (default: 1).
+
+## Docker
 ```sh
-fab execute-script dummy.py
+# Building the container
+docker build -t fab-botnet .   
+# Running the container
+# Connecting the container to the network
+docker run -d --name fab-botnet --network chn-network fab-botnet
 ```
+
+## Other
+Newer cryptography libraries may require `rust` depending on the system.

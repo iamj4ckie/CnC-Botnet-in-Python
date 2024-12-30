@@ -1,11 +1,11 @@
 import json
-from fabric import Connection, Group, task
-from pathlib import Path
-from getpass import getpass
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
+from getpass import getpass
+from pathlib import Path
 
+from fabric import Connection, Group, task
 
 logging.basicConfig(
     filename="paramiko.log",
@@ -118,7 +118,9 @@ def select_hosts(c):
         "Enter the indices of hosts to select (comma-separated):"
     ).strip()
     selected_indices = [int(i) for i in selections.split(",") if i.isdigit()]
-    selected_hosts = [all_hosts[i] for i in selected_indices if i < len(all_hosts)]
+    selected_hosts = [
+        all_hosts[i] for i in selected_indices if i < len(all_hosts)
+    ]
     state["selected_hosts"] = selected_hosts
     save_state(state)
     print(f"Selected {len(selected_hosts)} hosts.")
@@ -128,12 +130,6 @@ def select_hosts(c):
 def run_command(c, command, repetitions=1, interval=1):
     """
     Run a command on all selected hosts simultaneously.
-
-    Args:
-        c: Fabric context.
-        command: Command to execute.
-        repetitions (optional): Number of times to run the command. Default is 1.
-        interval (optional): Interval between repetitions in seconds. Default is 1 second.
     """
     state = load_state()
     hosts = state.get("selected_hosts", [])
@@ -151,7 +147,9 @@ def run_command(c, command, repetitions=1, interval=1):
 
         print(f"Connecting to {host}...")
         try:
-            connection = Connection(host=host, connect_kwargs={"password": password})
+            connection = Connection(
+                host=host, connect_kwargs={"password": password}
+            )
             for _ in range(repetitions):
                 result = connection.run(command, hide=True)
                 print(f"Success on {host}: {result.stdout.strip()}")
