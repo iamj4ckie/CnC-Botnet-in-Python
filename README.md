@@ -39,7 +39,7 @@ Available tasks:
 
 - Use `select-hosts` to select specific hosts to run commands or scripts.
 
-- Use `add-hosts` to add a new host directly.
+- Use `add-host` to add a new host directly.
 ```sh
 fab add-host --host "username@host" --password "password"
 ```

@@ -21,7 +21,7 @@ This approach was created due to dependencies and build erros on macOS. In a rea
 
 4. Access the container 
 ```bash
-docker exec -it fab-botnet fab -l
+docker exec -it fab-botnet /bin/sh
 ```
 
 Once you are inside the container you can execute the the botnet commands as on the README.md
@@ -36,7 +36,7 @@ To attack the dynamic victim behind the reverse proxy, you can use the following
 
 **Using `curl`:**
 ```bash
-fab run-command "curl http://reverse-proxy/dynamic" --repetitions 100 --interval 1
+fab run-command "curl http://reverse-proxy/dynamic" --repetitions 300 --interval 5 
 ```
 
 **Using `wget`:**

@@ -1,6 +1,8 @@
 import json
 import logging
 import time
+import unicodedata
+import re
 from concurrent.futures import ThreadPoolExecutor
 from getpass import getpass
 from pathlib import Path
@@ -81,10 +83,30 @@ def list_hosts(c):
         print(f"- {host}")
 
 
+def clean_text(text):
+    """Normalize and remove invalid Unicode characters."""
+    if text is None:
+        return None
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r"[^\w@\.\-:]", "", text)  # Allow @ . - : for hostnames/ports
+    return text
+
 @task
 def add_host(c, host, password=None):
     """Add a new host to the state and append it to hosts.txt."""
     state = load_state()
+
+    # Clean host and password
+    host = clean_text(host)
+    password = clean_text(password)
+
+    print(f"DEBUG: Cleaned host={repr(host)}, password={repr(password)}")  # Debugging
+
+    # Validate host format (allow colons for ports)
+    if not re.match(r"^[\w@\.\-]+(:\d+)?$", host):
+        print(f"Invalid host format: {host}")
+        return
+
     if host not in state["env_hosts"]:
         state["env_hosts"].append(host)
         if password:
@@ -92,7 +114,7 @@ def add_host(c, host, password=None):
         save_state(state)
 
         # Append to hosts.txt
-        with open(HOSTS_FILE, "a") as f:
+        with open(HOSTS_FILE, "a", encoding="utf-8") as f:
             if password:
                 f.write(f"{host} {password}\n")
             else:
@@ -101,8 +123,6 @@ def add_host(c, host, password=None):
         print(f"Host {host} added and saved to hosts.txt.")
     else:
         print(f"Host {host} already exists.")
-
-
 @task
 def select_hosts(c):
     """Select specific hosts to execute commands."""
