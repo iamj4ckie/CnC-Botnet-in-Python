@@ -1,24 +1,31 @@
 import json
 import logging
 import time
+import csv
 import unicodedata
 import re
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from getpass import getpass
 from pathlib import Path
 
-from fabric import Connection, Group, task
+from fabric import Connection, task
 
+LOG_FILE = "attack_log.csv"
+NUM_THREADS_PER_COWRIE = 3  # Number of threads per Cowrie
 logging.basicConfig(
     filename="paramiko.log",
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-
 logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
 HOSTS_FILE = "hosts.txt"
 STATE_FILE = "hosts_state.json"
+
+if not Path(LOG_FILE).exists():
+    with open(LOG_FILE, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["timestamp", "host", "command", "repetition", "response_time"])
 
 
 def save_state(state):
@@ -149,7 +156,8 @@ def select_hosts(c):
 @task
 def run_command(c, command, repetitions=1, interval=1):
     """
-    Run a command on all selected hosts simultaneously.
+    Run a command on all selected hosts simultaneously with parallel requests per Cowrie.
+    Logs response times to analyze server performance degradation.
     """
     state = load_state()
     hosts = state.get("selected_hosts", [])
@@ -161,23 +169,41 @@ def run_command(c, command, repetitions=1, interval=1):
     results = {}
 
     def execute_command(host):
+        """Executes the attack command on a single host with multi-threading."""
         password = passwords.get(host)
         if not password:
             password = getpass(f"Password for {host}: ")
 
         print(f"Connecting to {host}...")
-        try:
-            connection = Connection(
-                host=host, connect_kwargs={"password": password}
-            )
-            for _ in range(repetitions):
+
+        def run_request(i):
+            """Runs a single request and logs the response time."""
+            try:
+                connection = Connection(host=host, connect_kwargs={"password": password})
+                start_time = time.time()
                 result = connection.run(command, hide=True)
-                print(f"Success on {host}: {result.stdout.strip()}")
-                time.sleep(interval)
-            results[host] = f"{repetitions} repetitions completed"
-        except Exception as e:
-            print(f"Error on {host}: {e}")
-            results[host] = str(e)
+                response_time = time.time() - start_time
+
+                log_entry = [time.strftime("%Y-%m-%d %H:%M:%S"), host, command, i+1, response_time]
+                with open(LOG_FILE, "a", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(log_entry)
+
+                print(f"[{host}] Repetition {i+1}: Response Time = {response_time:.4f} sec")
+                return response_time
+            except Exception as e:
+                print(f"Error on {host}: {e}")
+                return None
+
+        for i in range(repetitions):
+            with ThreadPoolExecutor(max_workers=NUM_THREADS_PER_COWRIE) as executor:
+                futures = [executor.submit(run_request, i) for _ in range(NUM_THREADS_PER_COWRIE)]
+                for future in as_completed(futures):
+                    future.result()  # Wait for all requests to complete
+
+            time.sleep(interval)
+
+        results[host] = f"{repetitions} repetitions completed"
 
     with ThreadPoolExecutor() as executor:
         executor.map(execute_command, hosts)
@@ -185,3 +211,5 @@ def run_command(c, command, repetitions=1, interval=1):
     print("\nCommand Execution Results:")
     for host, output in results.items():
         print(f"{host}: {output}")
+
+    print("\nAttack log saved in attack_log.csv.")

@@ -36,14 +36,20 @@ To attack the dynamic victim behind the reverse proxy, you can use the following
 
 **Using `curl`:**
 ```bash
-fab run-command "curl http://reverse-proxy/dynamic" --repetitions 300 --interval 5 
+fab run-command "curl http://reverse-proxy/dynamic" --repetitions 100 --interval 1 
+curl -s http://reverse-proxy/dynamic 
+fab run-command "curl -w "Time: %{time_total}\n" -o /dev/null -s http://reverse-proxy/dynamic" --repetitions 300 --interval 5 
+
 ```
 
 **Using `wget`:**
 ```bash
 fab run-command "wget http://reverse-proxy/dynamic" --repetitions 100 --interval 1
 ```
-
+fab run-command "curl -s 'http://reverse-proxy/dynamic?rand=$RANDOM'" --repetitions 500 --interval 1
+fab run-command "curl -X POST -d 'data=spam' http://reverse-proxy/dynamic" --repetitions 500 --interval 1
+fab add-host --host "cowrie@cowrie-cowrie-1:2222" --password "password"
+fab add-host --host "cowrie@cowrie-cowrie-10-1:2222" --password "password"
 The above commands will repeatedly request the `/dynamic` endpoint of the reverse proxy at the specified interval (1 second in this case), simulating repeated load or a basic DDoS scenario.
 
 ---
